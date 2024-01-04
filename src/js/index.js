@@ -14,6 +14,7 @@ iziToast.settings({
 
 const form = document.getElementById("search-form");
 const gallery = document.querySelector(".gallery");
+const loader = document.querySelector(".loader");
 
 const pageState = {
   page: 1,
@@ -36,9 +37,13 @@ const pageState = {
     this.searchParams = newParams;
   },
   startLoading() {
+    loader.classList.remove('visually-hidden');
+
     this.isLoading = true;
   },
   finishLoading() {
+    loader.classList.add('visually-hidden');
+
     this.isLoading = false;
   },
   addShowItems(itemsCount) {
@@ -52,6 +57,8 @@ const pageState = {
 const lightbox = new SimpleLightbox(".photo_link");
 
 const handleError = (error) => {
+  pageState.finishLoading();
+
   iziToast.error({ message: error.message });
 };
 
@@ -102,7 +109,20 @@ const handleSubmit = async (event) => {
   event.preventDefault();
 
   pageState.resetState();
-  pageState.updateSearchParams(event.target.elements.searchQuery.value);
+
+  const searchValue = event.target.elements.searchQuery.value.trim();
+
+  if (!searchValue) {
+    form.reset();
+
+    iziToast.warning({
+      message: "Text is required for search images",
+    });
+
+    return;
+  }
+
+  pageState.updateSearchParams(searchValue);
   pageState.startLoading();
 
   try {
